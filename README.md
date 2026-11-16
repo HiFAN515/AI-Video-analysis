@@ -98,8 +98,8 @@ prepare
 ### 安装
 
 ```bash
-git clone <repo-url> videomind
-cd videomind
+git clone https://github.com/HiFAN515/AI-Video-analysis.git
+cd AI-Video-analysis
 bash scripts/install.sh
 ```
 
@@ -427,21 +427,6 @@ ASR 的同音字/专有名词错误无法完全避免。AI 审校提示词要求
 **AI 分析点了没反应？**
 推理型模型会先思考 30–90 秒；界面会显示「模型正在思考 · 已等待 N 秒」。如果一直没有正文，请确认模型名正确、Key 有余额，并查看任务页/浏览器控制台错误。
 
-## 设计取舍与开源调研
-
-动手前先调研了同类项目，结论与组件选型见 [docs/DESIGN.md](docs/DESIGN.md)：
-
-- 同类工具大多直接 ASR，缺少去 BGM / 降噪 / 说话人分离；
-- 直接 fork 大型项目改造成本高，因此复用 yt-dlp、Demucs、faster-whisper、sherpa-onnx、noisereduce 等底层能力，自己实现编排、对齐、存储与交互；
-- 本地优先，云服务只作为可选后端。
-
-## Roadmap
-
-- 文稿向量化与 RAG（超长视频讨论）
-- 说话人命名与跨视频声纹识别
-- 视频截图 / 图文笔记
-- 模型下载进度条与任务队列可视化
-- 可选 DeepFilterNet 等神经网络降噪
 
 ## 致谢
 
@@ -450,3 +435,4 @@ ASR 的同音字/专有名词错误无法完全避免。AI 审校提示词要求
 ## License
 
 [MIT](LICENSE)。请遵守视频平台的服务条款与版权规定，仅处理你有权使用的内容。
+
