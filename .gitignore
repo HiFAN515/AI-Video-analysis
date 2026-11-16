@@ -1,0 +1,31 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Secrets / local configuration
+.env
+.env.*
+!.env.example
+
+# Runtime data (contains your transcripts, audio and API keys)
+data/
+models/
+
+# Model / package caches
+.cache/
+frontend/node_modules/
+frontend/.npm-cache/
+frontend/dist/
+frontend/tsconfig.tsbuildinfo
+
+# Local backups and scratch files
+backup/
+*.sse
+*.log
+.DS_Store
+
+# Release archives
+*.tar.gz
