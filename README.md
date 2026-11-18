@@ -43,29 +43,6 @@
 
 > 截图中的视频为公开演示素材；AI 回复由本地 mock LLM 生成，用于展示界面与流式效果。真实使用需要配置你自己的模型。
 
-## 架构
-
-```
-┌──────────────────────────── Browser (React) ────────────────────────────┐
-│  新建解析  任务进度  文稿（说话人/时间戳）  AI 解析  讨论  资料库  设置     │
-└───────────────▲──────────────────────────────────────────▲──────────────┘
-                │ REST / SSE                                │
-┌───────────────┴──────────────────────────────────────────┴──────────────┐
-│ FastAPI                                                                  │
-│  /api/videos/probe   /api/tasks   /api/transcripts   /api/library        │
-│  /api/llm-profiles   /api/conversations   /api/settings   /api/system    │
-│                                                                          │
-│  JobManager（单 worker 默认）                                             │
-│    └─ download → extract → separate → denoise → normalize → diarize      │
-│        → transcribe → finalize                                          │
-│                                                                          │
-│  SQLite (WAL)  videos / tasks / task_events / transcripts / segments      │
-│                analyses / conversations / messages / llm_profiles         │
-│  Files         data/audio/<task_id>/source.* + enhanced.mp3               │
-└──────────────────────────────────────────────────────────────────────────┘
-```
-
-更完整的需求映射、GitHub 调研与算法说明见 [docs/DESIGN.md](docs/DESIGN.md)，原始需求见 [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md)。
 
 ## 处理流水线
 
@@ -124,12 +101,6 @@ PIP_INDEX=https://mirrors.aliyun.com/pypi/simple/ bash scripts/install.sh
 ```bash
 bash scripts/start.sh
 # 打开 http://127.0.0.1:7860
-```
-
-开发模式（后端热重载 + Vite HMR）：
-
-```bash
-bash scripts/dev.sh
 ```
 
 `start.sh` 会自动加载 CUDA 12 运行库路径（如果已安装），并在终端打印检测到的 GPU；可通过 `VM_HOST` / `VM_PORT` 修改监听地址。
@@ -214,13 +185,6 @@ INSTALL_CUDA12=1 bash scripts/install.sh
 >
 > 只给 Demucs 用 GPU、ASR 用 CPU 时，不需要 CUDA 12 库：Demucs 直接使用 PyTorch 的 CUDA 运行时。
 
-### 8GB 显存建议
-
-- Demucs：`htdemucs` 可用。
-- ASR：`small` 或 `medium` + `float16`。
-- `large-v3` 在显存低于 12GB 时会自动降级；CPU 模式下可用内存低于 10GB 也会降级，低于 3GB 时跳过 Demucs。
-- 降噪是 CPU 频谱算法，不占 GPU；真正吃 GPU 的是 Demucs 和 ASR。
-
 ## 暂停 / 继续 / 终止
 
 - 运行中点击「暂停」，会在当前分块或识别片段结束后生效，状态变为「已暂停」。
@@ -264,7 +228,6 @@ INSTALL_CUDA12=1 bash scripts/install.sh
 - 删除音频只删除文件，文稿、AI 分析与讨论保留。
 - 任务级联删除会删除对应文稿、分析、讨论和事件。
 
-> 开源/提交前请确认不要提交 `data/`、`models/`、`.cache/`、`.env`、`frontend/dist/`、`frontend/node_modules/`。仓库的 `.gitignore` 已覆盖这些目录。安全说明见 [SECURITY.md](SECURITY.md)。
 
 ## 性能参考
 
@@ -342,33 +305,6 @@ curl -o transcript.md http://127.0.0.1:7860/api/transcripts/<id>/export?format=m
 curl -N -X POST http://127.0.0.1:7860/api/transcripts/<id>/analyses/stream \
   -H 'Content-Type: application/json' \
   -d '{"kind":"review"}'
-```
-
-主要端点：
-
-```
-POST /api/videos/probe
-POST /api/tasks
-GET  /api/tasks?status=
-GET  /api/tasks/{id}
-POST /api/tasks/{id}/pause|resume|cancel|retry
-DELETE /api/tasks/{id}              # 级联删除
-DELETE /api/tasks/{id}/audio        # 只删音频
-GET  /api/tasks/{id}/audio?variant=enhanced|source
-GET  /api/transcripts/{id}
-GET  /api/transcripts/{id}/export?format=md|txt|srt|json
-GET/POST /api/transcripts/{id}/analyses[/stream]
-GET/POST /api/transcripts/{id}/conversations
-POST /api/conversations/{id}/messages/stream
-GET  /api/library?q=
-GET  /api/library/stats
-GET/PUT /api/settings
-POST /api/settings/test-llm
-GET/POST /api/llm-profiles
-POST /api/llm-profiles/{id}/activate|test
-DELETE /api/llm-profiles/{id}
-GET  /api/system/health|info|asr-models
-GET  /api/media/cover?url=          # 封面代理
 ```
 
 ## 开发与测试
